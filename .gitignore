@@ -1,0 +1,20 @@
+# Environments
+.env
+.envrc
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Vector store data
+.chromadb/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Visual Studio Code
+.vscode/
