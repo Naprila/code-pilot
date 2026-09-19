@@ -10,6 +10,7 @@ venv.bak/
 
 # Vector store data
 .chromadb/
+*.sqlite3   
 
 # Python
 __pycache__/
