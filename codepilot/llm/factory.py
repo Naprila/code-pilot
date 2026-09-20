@@ -16,6 +16,10 @@ def get_llm():
     elif provider == "groq":
         from langchain_groq import ChatGroq
         return ChatGroq(model=model)
+
+    elif provider == "google":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        return ChatGoogleGenerativeAI(model=model)
     
     from langchain_openai import ChatOpenAI
     return ChatOpenAI(model=model)

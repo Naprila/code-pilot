@@ -8,8 +8,12 @@ logger = get_logger(__name__)
 @tool
 def search_codebase(query: str) -> str:
     """
-    Search the codebase for relevant classes, functions or logic.
-    Use this tool whenever you need to find code related to a question.
+    Search the codebase using one natural-language query string.
+
+    Always pass exactly:
+    {"query": "your search request"}
+
+    For file lookups, include the filename in the query.
     """
     logger.info(f"Tool called: search_codebase with query: {query}")
     retrieve = get_retriever()
@@ -27,3 +31,10 @@ def search_codebase(query: str) -> str:
             f"Code:\n{chunk['content']}\n"
         )
     return "\n---\n".join(results)
+
+
+'''
+Search the codebase for relevant classes, functions or logic.
+    Use this tool whenever you need to find code related to a question.
+    Pass one argument only: query, as a natural-language search string.
+'''

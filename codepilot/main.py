@@ -2,7 +2,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.prompt import Prompt
-import chromadb
 
 from codepilot.config import config
 from codepilot.context.indexers.factory import get_indexer, get_index_inspector
@@ -10,6 +9,7 @@ from codepilot.observability.logger import get_logger
 from codepilot.context.indexers.semantic_chroma import index_codebase
 from codepilot.llm.factory import get_llm, get_embedder
 from codepilot.agent.orchestrator import handle_query
+from codepilot.memory.session import get_current_session, new_session, switch_session
 
 load_dotenv()
 console = Console()
@@ -30,13 +30,15 @@ def initialize():
     console.print(f"[dim]Embedder: {config['embeddings']['provider']} / {config['embeddings']['model']}[/dim]")
 
     index = get_or_create_index()
+    session_id = get_current_session()
+    console.print(f"[dim]Session: {session_id}[/dim]")
     console.print(f"[green]✓ Ready [/green]\n")
-    return llm, embedder, index
+    return llm, embedder, index, session_id
 
 def run():
     logger.info("Hello from codepilot")
 
-    llm, embedder, index = initialize()
+    llm, embedder, index, session_id = initialize()
     console.print("Type [bold]'/exit|/quit'[/bold] to quit\n")
 
     while True:
@@ -52,16 +54,28 @@ def run():
             question = user_input.removeprefix("/ask ").strip()
             logger.info(f"Ask command received: {question}")
             console.print(f"[dim]Searching for: {question}...[/dim]")
-            response = handle_query(question)
+            response = handle_query(question, session_id)
             console.print(response)
+        elif user_input == "/new_session":
+            session_id = new_session()
+            console.print(f"[green]New session started: {session_id}[/green]")
+        elif user_input.startswith("/switch "):
+            target = user_input.removeprefix("/switch ").strip()
+            session_id = switch_session(target)
+            console.print(f"[green]Switched to session: {session_id}[/green]")
+        elif user_input == "/session":
+            console.print(f"[dim]Current session: {session_id}[/dim]")
         elif user_input == "/show_semantic_index":
             logger.info("Showing semantic index")
             get_index_inspector()(index)
         else:
             logger.warning(f"Unknown command received: {user_input}")
             console.print("[yellow]Unknown command. Try:[/yellow]")
-            console.print(" [bold]/ask <question>[/bold] — ask a question")
-            console.print(" [bold]/show_semantic_index[/bold] — show all chunks in the semantic index")
+            console.print(" [bold]/ask <question>[/bold] — ask a question about the codebase")
+            console.print(" [bold]/show_index[/bold] — show all chunks in the index")
+            console.print(" [bold]/new_session[/bold] — start a fresh conversation")
+            console.print(" [bold]/switch <session_id>[/bold] — resume a past session")
+            console.print(" [bold]/session[/bold] — show current session id")
 
 if __name__ == "__main__":
     run()

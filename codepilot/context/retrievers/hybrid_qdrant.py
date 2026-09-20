@@ -1,28 +1,37 @@
 import os
-from langchain_qdrant import QdrantVectorStore
 
+from langchain_qdrant import QdrantVectorStore, RetrievalMode, FastEmbedSparse
 from codepilot.config import config
 from codepilot.llm.factory import get_embedder
 from codepilot.observability.logger import get_logger
 
 logger = get_logger(__name__)
 
+RETRIEVAL_MODE_MAP = {
+    "dense": RetrievalMode.DENSE,
+    "sparse": RetrievalMode.SPARSE,
+    "hybrid": RetrievalMode.HYBRID,
+}
+
 def retrieve(query: str, k: int = 5) -> list[dict]:
     """
-    Embed the query and find the k most similar chunks in Qdrant.
-    Returns a list of results with content and metadata.
+    Retrieve top-k chunks using dense, sparse, or hybrid mode — controlled by config.
     """
-
     embedder = get_embedder()
+    collection_name = config["qdrant"]["collection_name"]
+    mode = config["vector_store"].get("retrieval_mode", "hybrid")
+    retrieval_mode = RETRIEVAL_MODE_MAP.get(mode, RetrievalMode.HYBRID)
 
     vector_store = QdrantVectorStore.from_existing_collection(
         embedding=embedder,
+        sparse_embedding=FastEmbedSparse(model_name="Qdrant/bm25"),
+        retrieval_mode=retrieval_mode,
         url=os.getenv("QDRANT_URL"),
         api_key=os.getenv("QDRANT_API_KEY"),
-        collection_name=config["qdrant"]["collection_name"],
+        collection_name=collection_name,
     )
-
-    logger.info(f"Retrieving top {k} chunks for query: {query}")
+    
+    logger.info(f"Retrieving top {k} chunks — mode: {mode} — query: {query}")
     results = vector_store.similarity_search_with_score(query, k=k)
 
     chunks = []
@@ -38,6 +47,6 @@ def retrieve(query: str, k: int = 5) -> list[dict]:
             "distance": score,
         })
         logger.debug(f" Retrieved {meta['type']} '{meta['name']}' from {meta['source']} (score: {score:.4f})")
-
+        
     logger.info(f"Retrieved {len(chunks)} chunks")
     return chunks

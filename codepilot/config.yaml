@@ -1,6 +1,6 @@
 llm:
   provider: groq              # groq | openai | anthropic
-  model: openai/gpt-oss-120b    # gpt-4o
+  model: openai/gpt-oss-120b        # gpt-4o
 
 embeddings:
   provider: huggingface
@@ -8,9 +8,19 @@ embeddings:
 
 vector_store:
   provider: qdrant
+  retrieval_mode: hybrid # dense | sparse | hybrid
 
 qdrant:
-  collection_name: codebase
+  collection_name: codebase_sample
+
+rag:
+  mode: semantic # semantic | hybrid
+
+
+memory:
+  db_path: .memory/memory.db
+  summarize_at_tokens: 4000
+  keep_last_messages: 20
 
 # Vector Store
 chromadb:
