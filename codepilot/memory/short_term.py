@@ -1,5 +1,5 @@
 import sqlite3
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langchain.agents.middleware import SummarizationMiddleware
 from pathlib import Path
 
@@ -9,12 +9,16 @@ from codepilot.observability.logger import get_logger
 
 logger = get_logger(__name__)
 
-def get_checkpointer() -> SqliteSaver:
+def get_checkpointer_db_path() -> str:
     db_path = config["memory"]["db_path"]
-    Path(db_path).parent.mkdir(exist_ok=True)
+    Path(db_path).parent.mkdir(parents=True, exist_ok=True)
     logger.info(f"Using SQLite checkpointer at {db_path}")
-    conn = sqlite3.connect(db_path, check_same_thread=False)
-    return SqliteSaver(conn)
+    return db_path
+
+def get_checkpointer() -> AsyncSqliteSaver:
+    db_path = get_checkpointer_db_path()
+    # conn = sqlite3.connect(db_path, check_same_thread=False)
+    return AsyncSqliteSaver.from_conn_string(db_path)
 
 def get_session_history(thread_id: str) -> list[dict]:
     checkpointer = get_checkpointer()

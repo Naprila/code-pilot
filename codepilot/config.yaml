@@ -18,13 +18,13 @@ rag:
 
 
 memory:
-  db_path: .memory/memory.db
+  db_path: .codepilot/memory/memory.db
   summarize_at_tokens: 4000
   keep_last_messages: 20
 
 # Vector Store
 chromadb:
-  persist_dir: .chromadb/
+  persist_dir: .codepilot/chromadb/
   collection_name: codebase
 
 # Lexical Store
