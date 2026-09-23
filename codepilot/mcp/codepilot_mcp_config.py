@@ -9,7 +9,7 @@ load_dotenv()
 
 _CONFIG_PATH = Path(__file__).parent.parent / "codepilot_mcp_servers.json"
 
-def load_educosys_mcp_configs() -> dict:
+def load_codepilot_mcp_configs() -> dict:
     """Return mcp_servers dict from codepilot_mcp_servers.json with env vars resolved."""
     os.environ.setdefault("CWD", str(Path.cwd()))
     raw = json.loads(_CONFIG_PATH.read_text())

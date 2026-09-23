@@ -1,6 +1,10 @@
+tasks:
+  db_path: .codepilot/tasks.db
+
 llm:
   provider: groq              # groq | openai | anthropic
   model: openai/gpt-oss-120b        # gpt-4o
+  judge_model: openai/gpt-oss-20b # cheaper model used only for LLM-as-judge
 
 embeddings:
   provider: huggingface

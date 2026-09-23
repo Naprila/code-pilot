@@ -14,6 +14,8 @@ from codepilot.agent.factory import build_agent
 from codepilot.memory.session import get_current_session, new_session, switch_session
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from codepilot.memory.short_term import get_checkpointer_db_path
+from codepilot.tasks.orchestrator import handle_plan_command
+from codepilot.tasks.status import show_task_status
 
 # load_dotenv()
 load_dotenv(Path(__file__).parent.parent / ".env")
@@ -75,6 +77,12 @@ async def _run_async():
             elif user_input == "/show_semantic_index":
                 logger.info("Showing semantic index")
                 get_index_inspector()(index)
+            elif user_input.startswith("/plan "):
+                goal = user_input.removeprefix("/plan ").strip()
+                logger.info(f"Plan command received: {goal}")
+                await handle_plan_command(goal)
+            elif user_input == "/task_status":
+                show_task_status()
             else:
                 logger.warning(f"Unknown command received: {user_input}")
                 console.print("[yellow]Unknown command. Try:[/yellow]")
@@ -83,6 +91,8 @@ async def _run_async():
                 console.print(" [bold]/new_session[/bold] — start a fresh conversation")
                 console.print(" [bold]/switch <session_id>[/bold] — resume a past session")
                 console.print(" [bold]/session[/bold] — show current session id")
+                console.print(" [bold]/plan <goal>[/bold] — generate and execute a plan")
+                console.print(" [bold]/task_status[/bold] — show task progress for active project")
 
 def run():
     asyncio.run(_run_async())
